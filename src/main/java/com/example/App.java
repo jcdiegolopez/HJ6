@@ -1,10 +1,16 @@
 package com.example;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
+
+
+
 
 
 
@@ -18,6 +24,7 @@ public class App
         CardManager<String,Card> cardManager;
         boolean bucle = true;
         try {
+            
             System.out.println("1. HashMap ");
             System.out.println("2. LinkedHashMap ");
             System.out.println("3. TreeMap ");
@@ -38,9 +45,11 @@ public class App
             }
             cardManager = factory.createMap(implementation);
             ArrayList<String[]> myCards = readCSV("C:\\Users\\dijol\\OneDrive - UVG\\Universidad\\Ciclo 3\\Algoritmos\\programas\\hj6\\src\\main\\java\\com\\example\\cards_desc.txt");
+            long startTime = System.nanoTime();
             for (String[] card : myCards) {
                 cardManager.addCard(card[0], new Card(card[0], card[1]));
             }
+            long deltaTimeMap = System.nanoTime() - startTime;
 
             while (bucle) {
                 System.out.println("1. Agregar carta a usuario ");
@@ -50,6 +59,7 @@ public class App
                 System.out.println("5. Mostrar el nombre y tipo de todas las cartas existentes ");
                 System.out.println("6. Mostrar el nombre y tipo de todas las cartas existentes, ordenadas por tipo. ");
                 System.out.println("7. Salir ");
+                System.out.println("8. Test de HashMap ");
                 System.out.println("Ingrese que desea hacer: ");
                 option = scanner.nextInt();
 
@@ -86,7 +96,10 @@ public class App
                         cardManager.showSortedUserCards();
                         break;
                     case 5:
+                        long startTimeShow = System.nanoTime();
                         cardManager.showCards();
+                        long deltaTimeTotal = (System.nanoTime() - startTimeShow) + deltaTimeMap;
+                        System.out.println("Tiempo de ejecución total: " + deltaTimeTotal);
                         break;
                     case 6:
                         cardManager.showSortedCards();
@@ -94,6 +107,9 @@ public class App
                     case 7:
                         bucle = false;
                         System.out.println("Saliendo ");
+                        break;
+                    case 8:
+                        runTimeTestHash(myCards);
                         break;
                     default:
                         System.out.println("No es una opción válida");
@@ -120,5 +136,39 @@ public class App
             e.printStackTrace();
         }
         return data;
+    }
+
+    public static void runTimeTestHash(ArrayList<String[]> myCards){
+        
+        ArrayList<String[]> myTimes = new ArrayList<String[]>();
+        for (int i = 0; i < myCards.size(); i++) {
+            
+            CardManager<String,Card> cardManager = new HashMapCardManager();
+            List<String[]> subList = myCards.subList(0, i);
+            long startTime = System.nanoTime();
+            for (String[] card : subList) {
+                cardManager.addCard(card[0], new Card(card[0], card[1]));
+            }
+            long deltaTimeMap = System.nanoTime() - startTime;
+            myTimes.add(new String[]{String.valueOf(i), String.valueOf(deltaTimeMap)});
+        }
+        exportToCSV(myTimes, "C:\\Users\\dijol\\OneDrive - UVG\\Universidad\\Ciclo 3\\Algoritmos\\programas\\hj6\\src\\main\\java\\com\\example\\times.csv");
+        
+    }
+
+    private static void exportToCSV(ArrayList<String[]> data, String filePath) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            for (String[] row : data) {
+                for (int i = 0; i < row.length; i++) {
+                    writer.write(row[i]);
+                    if (i == 0) {
+                        writer.write(",");
+                    }
+                }
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
